@@ -1,3 +1,30 @@
-from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+from django.contrib.auth.models import User
+from .models import Question
+from .api.serializers import QuestionSerializer
+# mit fester URL
+# url = 'http://127.0.0.1:8000/api/forum/likes/' 
 
-# Create your tests here.
+class LikeTests(APITestCase):
+    
+    def test_get_like(self):
+        url = reverse('like-list')  
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        
+class QuestionTests(APITestCase):
+    
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.question = Question.objects.create(title='Test Question', content='Test Content', author=self.user, category='frontend')
+        
+    def test_detail_question(self):
+        url = reverse('question-detail', kwargs={'pk': self.question.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+       
+        expected_data = QuestionSerializer(self.question).data
+        self.assertEqual(response.data, expected_data)
