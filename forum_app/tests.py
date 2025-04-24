@@ -4,13 +4,16 @@ from rest_framework.test import APITestCase, APIClient
 from django.contrib.auth.models import User
 from .models import Question
 from .api.serializers import QuestionSerializer
-# mit fester URL
-# url = 'http://127.0.0.1:8000/api/forum/likes/' 
+from rest_framework.authtoken.models import Token
+
+
 
 class LikeTests(APITestCase):
     
     def test_get_like(self):
-        url = reverse('like-list')  
+        url = reverse('like-list')
+        # mit fester URL
+        # url = 'http://127.0.0.1:8000/api/forum/likes/'     
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
@@ -20,8 +23,14 @@ class QuestionTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.question = Question.objects.create(title='Test Question', content='Test Content', author=self.user, category='frontend')
+        # ohne TokenAuthentication
+        # self.client = APIClient()
+        # self.client.login(username='testuser', password='testpassword')
+
+        self.token = Token.objects.create(user=self.user)
         self.client = APIClient()
-        self.client.login(username='testuser', password='testpassword')
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
     
     def test_list_post_question(self):
         url = reverse('question-list')
